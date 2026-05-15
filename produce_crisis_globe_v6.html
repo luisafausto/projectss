@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produce Market Crisis — Q1 &amp; Early Q2 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 20px 40px;
+  }
+
+  #header { text-align: center; margin-bottom: 24px; }
+  #header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; color: #f0f6fc; }
+  #header p  { font-size: 13px; color: #7d8590; margin-top: 5px; }
+
+  /* ── Main layout ── */
+  #main {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 24px;
+  }
+
+  /* ── Globe ── */
+  #globe-wrap { position: relative; width: 320px; height: 320px; flex-shrink: 0; }
+  canvas#globe { display: block; }
+  #ov { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+  /* ── Sinaloa map (replaces globe for that chapter) ── */
+  #sinaloa-wrap {
+    display: none;
+    width: 320px;
+    height: 320px;
+    flex-shrink: 0;
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0a1628;
+    border: 1px solid #30363d;
+  }
+  #sinaloa-wrap.visible { display: block; }
+  #globe-wrap.hidden { display: none; }
+  #sinaloa-svg { width: 100%; height: 100%; }
+
+  /* ── Side panel ── */
+  #panel {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 10px;
+    padding-top: 6px;
+  }
+  #p-eyebrow { font-size: 11.5px; font-weight: 500; color: #7d8590; text-transform: uppercase; letter-spacing: 0.07em; }
+  #p-title   { font-size: 21px; font-weight: 600; color: #f0f6fc; line-height: 1.3; }
+  #p-dates   { font-size: 13px; color: #7d8590; margin-top: -4px; }
+  #p-body    { font-size: 15px; color: #adbac7; line-height: 1.65; }
+  #p-stat    { display: inline-block; font-size: 13.5px; font-weight: 600; padding: 5px 13px; border-radius: 6px; }
+
+  /* ── Timeline ── */
+  #tl-section { width: 100%; max-width: 900px; margin-bottom: 22px; }
+  .section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #7d8590; margin-bottom: 8px; }
+  #tl-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px 20px 20px; }
+  #tl-months { position: relative; height: 16px; margin-bottom: 2px; }
+  .tl-month-label { position: absolute; font-size: 13px; color: #7d8590; font-weight: 500; transform: translateX(-50%); }
+  #tl-track { position: relative; height: 40px; margin-bottom: 4px; }
+  #tl-base  { position: absolute; top: 14px; left: 0; right: 0; height: 3px; background: #30363d; border-radius: 2px; }
+  #tl-hl    { position: absolute; top: 14px; height: 3px; border-radius: 2px;
+               transition: left 0.55s cubic-bezier(0.4,0,0.2,1), width 0.55s cubic-bezier(0.4,0,0.2,1), background 0.4s; }
+  .tl-tick       { position: absolute; top: 10px; width: 1px; height: 10px; background: #30363d; }
+  .tl-week-label { position: absolute; top: 26px; font-size: 8.5px; color: #7d8590; transform: translateX(-50%); white-space: nowrap; }
+  .tl-event-dot  { position: absolute; top: 7px; width: 14px; height: 14px; border-radius: 50%;
+                    border: 2px solid rgba(255,255,255,0.5); transform: translateX(-50%);
+                    cursor: pointer; z-index: 3; transition: transform 0.18s, box-shadow 0.18s; }
+  .tl-event-dot:hover, .tl-event-dot.active { transform: translateX(-50%) scale(1.35); box-shadow: 0 0 0 4px rgba(255,255,255,0.1); }
+  #tl-bands { position: relative; height: 56px; margin-top: 4px; }
+  .tl-band  { position: absolute; top: 0; height: 16px; border-radius: 3px; opacity: 0.18; transition: opacity 0.3s; }
+  .tl-band.active { opacity: 0.35; }
+  .tl-band-label { position: absolute; font-size: 8.5px; font-weight: 500; color: #7d8590;
+                   white-space: nowrap; transform: translateX(-50%); transition: color 0.3s; }
+  .tl-band-label.active { color: #e6edf3; }
+  .tl-band-label.row0 { top: 18px; }
+  .tl-band-label.row1 { top: 30px; }
+
+  /* ── Chart ── */
+  #chart-section { width: 100%; max-width: 900px; margin-bottom: 24px; }
+  #chart-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 14px 18px 10px; height: 115px; }
+
+  /* ── Nav ── */
+  #nav-section { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 900px; }
+  #nav-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .nav-btn { font-family: inherit; font-size: 12px; padding: 6px 13px; border-radius: 6px;
+              border: 1px solid #30363d; background: transparent; color: #7d8590; cursor: pointer;
+              transition: background 0.13s, color 0.13s, border-color 0.13s; }
+  .nav-btn:hover { background: #161b22; color: #e6edf3; }
+  .nav-btn.active { background: #21262d; color: #f0f6fc; border-color: #58a6ff; font-weight: 500; }
+  #pn-row { display: flex; gap: 10px; }
+  #pn-row .nav-btn { padding: 7px 18px; }
+</style>
+</head>
+<body>
+
+<div id="main">
+  <!-- Globe (hidden for Sinaloa chapter) -->
+  <div id="globe-wrap">
+    <canvas id="globe" width="320" height="320"></canvas>
+    <svg id="ov" width="320" height="320"></svg>
+  </div>
+
+  <!-- Sinaloa map (shown only for that chapter) -->
+  <div id="sinaloa-wrap">
+    <svg id="sinaloa-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div id="panel">
+    <div id="p-eyebrow"></div>
+    <div id="p-title"></div>
+    <div id="p-dates"></div>
+    <div id="p-body"></div>
+    <div id="p-stat"></div>
+  </div>
+</div>
+
+<div id="tl-section">
+  <div class="section-label">Weekly timeline — events &amp; produce index</div>
+  <div id="tl-container">
+    <div id="tl-months"></div>
+    <div id="tl-track"><div id="tl-base"></div><div id="tl-hl"></div></div>
+    <div id="tl-bands"></div>
+  </div>
+</div>
+
+<div id="nav-section">
+  <div id="nav-row"></div>
+  <div id="pn-row">
+    <button class="nav-btn" id="btn-prev">← Prev</button>
+    <button class="nav-btn" id="btn-next">Next →</button>
+  </div>
+</div>
+
+<script>
+// ─── Week / index data ────────────────────────────────────────────────────
+const WEEKS=[
+  {l:'W52',m:'Dec'},{l:'W1',m:'Jan'},{l:'W4',m:'Jan'},{l:'W5',m:'Jan'},
+  {l:'W6',m:'Feb'},{l:'W7',m:'Feb'},{l:'W8',m:'Feb'},{l:'W9',m:'Feb'},
+  {l:'W10',m:'Mar'},{l:'W11',m:'Mar'},{l:'W12',m:'Mar'},{l:'W13',m:'Mar'},
+  {l:'W14',m:'Apr'},{l:'W15',m:'Apr'},{l:'W16',m:'Apr'},{l:'W17',m:'Apr'},
+  {l:'W18',m:'May'}
+];
+const IV=[1.04,1.18,1.11,1.14,1.18,1.20,1.13,1.12,1.12,1.13,1.18,1.38,1.41,1.40,1.42,1.43,1.37];
+const N=WEEKS.length;
+const pct=i=>(i/(N-1))*100;
+
+// ─── Chapters ─────────────────────────────────────────────────────────────
+const CHAPTERS=[
+  {
+    lbl:'FL Freeze', eye:'Driver 1 · weather',
+    title:'Florida freeze events',
+    dates:'Weeks 4–8 · Jan 19 – Feb 20, 2026',
+    body:'Back-to-back historic freezes devastated every major Florida growing region. Tampa saw snow for only the 3rd time in 30 years. Sweet corn volume fell 80% year-over-year. Tomatoes, peppers, beans, celery, and strawberries were all devastated. Several growers declared Act of God — damage lingered through April.',
+    stat:'Sweet corn: −80% vs prior year',
+    statBg:'#0d2a4a', statColor:'#58a6ff',
+    lat:27.5, lon:-81.5, scale:500, wr:[1,5],
+    dot:{c:'#4a9eff',p:'rgba(74,158,255,0.35)'}, sinaloa:false
+  },
+  {
+    lbl:'Hormuz', eye:'Driver 2 · geopolitics',
+    title:'Strait of Hormuz closure',
+    dates:'Weeks 9–16 · Feb 27 – Apr 17, 2026',
+    body:'US–Iran conflict closed the strait to commercial traffic. Oil surged above $100/barrel — levels not seen since Russia\'s invasion of Ukraine. Higher fuel costs rippled through the entire produce supply chain: field equipment, refrigerated shipping, and fertilizer all spiked.',
+    stat:'Oil: +25% in a single week',
+    statBg:'#3d2a0a', statColor:'#f5a623',
+    lat:26.5, lon:56.5, scale:540, wr:[7,15],
+    dot:{c:'#f5a623',p:'rgba(245,166,35,0.35)'}, sinaloa:false
+  },
+  {
+    lbl:'Mexico', eye:'Driver 3 · unrest & tariffs',
+    title:'Mexico cartel violence + tariffs',
+    dates:'Weeks 8–15 · Feb 20 – Apr 10, 2026',
+    body:'Cartel leader El Mencho\'s reported death triggered roadblocks and arson across Jalisco and Michoacán. The USDA temporarily suspended inspections. A new 15% blanket tariff plus a +17% duty on imported Mexican tomatoes compounded an already critical shortage.',
+    stat:'Tomatoes: +80% in a single week',
+    statBg:'#3d0f0f', statColor:'#f47067',
+    lat:20, lon:-102, scale:460, wr:[6,14],
+    dot:{c:'#e24b4a',p:'rgba(226,75,74,0.35)'}, sinaloa:false
+  },
+  {
+    lbl:'Yuma / CA', eye:'Driver 4 · heat & transition gap',
+    title:'Yuma heat wave & California gap',
+    dates:'Weeks 12–16 · Mar 16 – Apr 17, 2026',
+    body:'Record-setting March heat ended the Yuma, AZ desert season weeks ahead of schedule. Cold, wet weather in California\'s Salinas Valley delayed the seasonal handoff. The resulting supply gap hit broccoli (+39%), cauliflower (+59%), iceberg (+82%), and romaine hardest — all in a single week.',
+    stat:'Iceberg lettuce: +82% in one week',
+    statBg:'#0a2e22', statColor:'#3fb950',
+    lat:33.5, lon:-116, scale:480, wr:[9,15],
+    dot:{c:'#1d9e75',p:'rgba(29,158,117,0.35)'}, sinaloa:false
+  },
+  {
+    lbl:'Wildfires', eye:'Driver 5 · wildfire & drought',
+    title:'Southeast wildfires',
+    dates:'Week 17 · Apr 20–26, 2026',
+    body:'Extreme drought and Hurricane Helene debris fueled wildfires across Georgia and North Florida. Smoky haze slowed crop growth. Round and plum tomatoes hit all-time record highs. The produce Index peaked at $1.43/lb — the highest level ever recorded.',
+    stat:'Round tomatoes: all-time record high',
+    statBg:'#3d1505', statColor:'#f0883e',
+    lat:32, lon:-83.5, scale:480, wr:[13,15],
+    dot:{c:'#d85a30',p:'rgba(216,90,48,0.35)'}, sinaloa:false
+  },
+  {
+    lbl:'Sinaloa', eye:'The result',
+    title:'All U.S. tomato supply funneled through two small regions in Sinaloa',
+    dates:'Peak crisis · Feb – Apr 2026',
+    body:'With Florida wiped out by freezes and Mexican growing states disrupted by cartel violence, the entire U.S. tomato supply effectively funneled through two small growing regions in Sinaloa — Culiacán and Los Mochis. Every distributor on the East Coast, South, Midwest, and West was drawing from the same narrow source.',
+    stat:'One state. Two regions. 330 million consumers.',
+    statBg:'#3d1a1a', statColor:'#ff7b7b',
+    lat:25, lon:-107, scale:420, wr:[6,15],
+    dot:{c:'#e24b4a',p:'rgba(226,75,74,0.35)'}, sinaloa:true
+  }
+];
+
+// ─── Globe ────────────────────────────────────────────────────────────────
+const W=320,H=320,CX=160,CY=160;
+const cv=document.getElementById('globe');
+const gx=cv.getContext('2d');
+const ov=document.getElementById('ov');
+const NS='http://www.w3.org/2000/svg';
+const pulseDef=document.createElementNS(NS,'style');
+pulseDef.textContent='@keyframes gp{0%{r:8;opacity:.65}100%{r:26;opacity:0}}';
+ov.appendChild(pulseDef);
+
+let rx=0.26,ry=0,cs=500,autoR=false,sfr,ffr,worldData=null,cur=0;
+
+function proj(s){
+  return d3.geoOrthographic().scale(s).translate([CX,CY])
+    .rotate([ry*180/Math.PI,-rx*180/Math.PI,0]).clipAngle(90);
+}
+
+function drawGlobe(s){
+  const p=proj(s),ph=d3.geoPath(p,gx);
+  gx.clearRect(0,0,W,H);
+  gx.save();gx.beginPath();gx.arc(CX,CY,s,0,2*Math.PI);gx.fillStyle='#0a1628';gx.fill();gx.restore();
+  gx.save();gx.beginPath();gx.arc(CX,CY,s,0,2*Math.PI);gx.clip();
+  if(worldData){
+    gx.beginPath();ph(d3.geoGraticule()());
+    gx.strokeStyle='rgba(255,255,255,0.055)';gx.lineWidth=0.5;gx.stroke();
+    gx.beginPath();ph(topojson.feature(worldData,worldData.objects.land));
+    gx.fillStyle='#1a3a5c';gx.strokeStyle='rgba(100,180,255,0.18)';gx.lineWidth=0.4;
+    gx.fill();gx.stroke();
+  }
+  gx.restore();
+  gx.beginPath();gx.arc(CX,CY,s,0,2*Math.PI);
+  gx.strokeStyle='rgba(100,180,255,0.15)';gx.lineWidth=0.8;gx.stroke();
+  drawDots(s);
+}
+
+function isVis(lat,lon,s){
+  const p=proj(s),r=p.rotate();
+  const cLon=-r[0]*Math.PI/180,cLat=r[1]*Math.PI/180;
+  const φ=lat*Math.PI/180,λ=lon*Math.PI/180;
+  return Math.sin(cLat)*Math.sin(φ)+Math.cos(cLat)*Math.cos(φ)*Math.cos(λ-cLon)>0;
+}
+
+function drawDots(s){
+  while(ov.lastChild&&ov.lastChild!==pulseDef)ov.removeChild(ov.lastChild);
+  const p=proj(s);
+  CHAPTERS.forEach((ch,i)=>{
+    const idx=i;
+    if(!ch.dot||!isVis(ch.lat,ch.lon,s))return;
+    const pt=p([ch.lon,ch.lat]);if(!pt)return;
+    const g=document.createElementNS(NS,'g');
+    g.style.cursor='pointer';g.style.pointerEvents='all';
+    g.addEventListener('click',()=>goTo(idx));
+    const pulse=document.createElementNS(NS,'circle');
+    pulse.setAttribute('cx',pt[0]);pulse.setAttribute('cy',pt[1]);
+    pulse.setAttribute('r','8');pulse.setAttribute('fill',ch.dot.p);
+    pulse.style.animation='gp 2.2s ease-out infinite';
+    pulse.style.transformOrigin=`${pt[0]}px ${pt[1]}px`;
+    if(idx===cur){
+      const ring=document.createElementNS(NS,'circle');
+      ring.setAttribute('cx',pt[0]);ring.setAttribute('cy',pt[1]);ring.setAttribute('r','15');
+      ring.setAttribute('fill','none');ring.setAttribute('stroke',ch.dot.c);
+      ring.setAttribute('stroke-width','1.5');ring.setAttribute('opacity','0.4');
+      g.appendChild(ring);
+    }
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',pt[0]);c.setAttribute('cy',pt[1]);
+    c.setAttribute('r',idx===cur?10:6);
+    c.setAttribute('fill',idx===cur?ch.dot.c:'rgba(255,255,255,0.85)');
+    c.setAttribute('stroke',ch.dot.c);c.setAttribute('stroke-width','2');
+    g.appendChild(pulse);g.appendChild(c);ov.appendChild(g);
+  });
+}
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function flyTo(lat,lon,scl,done){
+  autoR=false;cancelAnimationFrame(sfr);cancelAnimationFrame(ffr);
+  const sx=rx,sy=ry,ss=cs,ex=lat*Math.PI/180;
+  let ey=-lon*Math.PI/180,dy=ey-sy;
+  while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;
+  const fy=sy+dy,mid=Math.min(ss,scl)*0.45;
+  let t=0;
+  function step(){
+    t=Math.min(t+0.012,1);const e=1-Math.pow(1-t,3);
+    rx=lerp(sx,ex,e);ry=lerp(sy,fy,e);
+    cs=t<0.5?lerp(ss,mid,t*2):lerp(mid,scl,(t-0.5)*2);
+    drawGlobe(cs);
+    if(t<1){ffr=requestAnimationFrame(step);}
+    else{rx=ex;ry=fy;cs=scl;drawGlobe(scl);if(done)done();}
+  }
+  step();
+}
+let sa=0;
+function spin(){if(!autoR)return;sa+=0.0025;ry=sa;drawGlobe(cs);sfr=requestAnimationFrame(spin);}
+
+// ─── Sinaloa arrow map ────────────────────────────────────────────────────
+// Simple US outline + Mexico outline + animated arrows from Sinaloa
+// to key US distribution hubs, all drawn in SVG
+
+let arrowAnimFrame;
+
+function buildSinaloaMap(){
+  const svg=document.getElementById('sinaloa-svg');
+  svg.innerHTML='';
+
+  const W=320,H=320;
+
+  // Ocean background
+  const bg=document.createElementNS(NS,'rect');
+  bg.setAttribute('width',W);bg.setAttribute('height',H);
+  bg.setAttribute('fill','#0a1628');svg.appendChild(bg);
+
+  // Create D3 Mercator projection centered on US/Mexico
+  const projection=d3.geoMercator()
+    .center([-100,28])
+    .scale(400)
+    .translate([W/2,H/2]);
+  
+  const pathGenerator=d3.geoPath(projection);
+
+  // Draw land features from world-atlas (same data as globe)
+  if(worldData){
+    // Draw land mass with matching globe colors
+    const land=topojson.feature(worldData,worldData.objects.land);
+    const landPath=document.createElementNS(NS,'path');
+    landPath.setAttribute('d',pathGenerator(land));
+    landPath.setAttribute('fill','#1a3a5c');
+    landPath.setAttribute('stroke','rgba(100,180,255,0.18)');
+    landPath.setAttribute('stroke-width','0.4');
+    svg.appendChild(landPath);
+    
+    // Draw country borders for definition
+    const countries=topojson.feature(worldData,worldData.objects.countries);
+    const countryPath=document.createElementNS(NS,'path');
+    countryPath.setAttribute('d',pathGenerator(countries));
+    countryPath.setAttribute('fill','none');
+    countryPath.setAttribute('stroke','rgba(100,180,255,0.12)');
+    countryPath.setAttribute('stroke-width','0.8');
+    svg.appendChild(countryPath);
+  }
+
+  // Convert projected coordinates for use in paths
+  const project=(lon,lat)=>{
+    const pt=projection([lon,lat]);
+    return pt?{x:pt[0],y:pt[1]}:null;
+  };
+
+  // Sinaloa region highlight
+  const sinCenter={lon:-107.7,lat:25.2};
+  const sinPt=project(sinCenter.lon,sinCenter.lat);
+  const sinX=sinPt?sinPt.x:160,sinY=sinPt?sinPt.y:160;
+
+  const sinGlow=document.createElementNS(NS,'circle');
+  sinGlow.setAttribute('cx',sinX);sinGlow.setAttribute('cy',sinY);
+  sinGlow.setAttribute('r','22');sinGlow.setAttribute('fill','rgba(226,75,74,0.12)');
+  svg.appendChild(sinGlow);
+
+  const sinCircle=document.createElementNS(NS,'circle');
+  sinCircle.setAttribute('cx',sinX);sinCircle.setAttribute('cy',sinY);
+  sinCircle.setAttribute('r','10');sinCircle.setAttribute('fill','#e24b4a');
+  sinCircle.setAttribute('stroke','#fff');sinCircle.setAttribute('stroke-width','1.5');
+  svg.appendChild(sinCircle);
+
+  // Culiacán label
+  const sinLabel=document.createElementNS(NS,'text');
+  sinLabel.setAttribute('x',sinX);sinLabel.setAttribute('y',sinY+24);
+  sinLabel.setAttribute('text-anchor','middle');
+  sinLabel.setAttribute('fill','#f47067');
+  sinLabel.setAttribute('font-size','8');sinLabel.setAttribute('font-weight','600');
+  sinLabel.setAttribute('font-family','Inter,sans-serif');
+  sinLabel.textContent='Sinaloa, MX';
+  svg.appendChild(sinLabel);
+
+  // Arrow defs (arrowhead)
+  const defs=document.createElementNS(NS,'defs');
+  const marker=document.createElementNS(NS,'marker');
+  marker.setAttribute('id','arrowhead');marker.setAttribute('markerWidth','8');
+  marker.setAttribute('markerHeight','6');marker.setAttribute('refX','8');marker.setAttribute('refY','3');
+  marker.setAttribute('orient','auto');
+  const arrowPath=document.createElementNS(NS,'polygon');
+  arrowPath.setAttribute('points','0 0, 8 3, 0 6');arrowPath.setAttribute('fill','#e24b4a');
+  marker.appendChild(arrowPath);defs.appendChild(marker);
+
+  // Faded arrowhead for trails
+  const markerFade=document.createElementNS(NS,'marker');
+  markerFade.setAttribute('id','arrowhead-fade');markerFade.setAttribute('markerWidth','8');
+  markerFade.setAttribute('markerHeight','6');markerFade.setAttribute('refX','8');markerFade.setAttribute('refY','3');
+  markerFade.setAttribute('orient','auto');
+  const arrowPathFade=document.createElementNS(NS,'polygon');
+  arrowPathFade.setAttribute('points','0 0, 8 3, 0 6');arrowPathFade.setAttribute('fill','rgba(226,75,74,0.35)');
+  markerFade.appendChild(arrowPathFade);defs.appendChild(markerFade);
+
+  svg.appendChild(defs);
+
+  // Distribution hub destinations
+  const hubs=[
+    {name:'New York',   lon:-74.0, lat:40.7, label:'Northeast'},
+    {name:'Chicago',    lon:-87.6, lat:41.9, label:'Midwest'},
+    {name:'Atlanta',    lon:-84.4, lat:33.7, label:'Southeast'},
+    {name:'Dallas',     lon:-96.8, lat:32.8, label:'South'},
+    {name:'Los Angeles',lon:-118.2,lat:34.1, label:'West Coast'},
+    {name:'Seattle',    lon:-122.3,lat:47.6, label:'Pacific NW'},
+  ];
+
+  // Draw animated paths from Sinaloa to each hub
+  const paths=[];
+  hubs.forEach((hub,i)=>{
+    const hubPt=project(hub.lon,hub.lat);
+    const hx=hubPt?hubPt.x:160,hy=hubPt?hubPt.y:160;
+
+    // Midpoint control for curve
+    const mx=(sinX+hx)/2 + (hub.lat>35 ? -10 : 8);
+    const my=(sinY+hy)/2 - 15;
+
+    // Background trail (faded, full path always visible)
+    const trail=document.createElementNS(NS,'path');
+    const d=`M${sinX.toFixed(1)},${sinY.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${hx.toFixed(1)},${hy.toFixed(1)}`;
+    trail.setAttribute('d',d);
+    trail.setAttribute('fill','none');
+    trail.setAttribute('stroke','rgba(226,75,74,0.18)');
+    trail.setAttribute('stroke-width','1.5');
+    svg.appendChild(trail);
+
+    // Animated path
+    const path=document.createElementNS(NS,'path');
+    path.setAttribute('d',d);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','#e24b4a');
+    path.setAttribute('stroke-width','2');
+    path.setAttribute('marker-end','url(#arrowhead)');
+    path.setAttribute('stroke-linecap','round');
+    const len=path.getTotalLength?path.getTotalLength():300;
+    path.setAttribute('stroke-dasharray',len);
+    path.setAttribute('stroke-dashoffset',len);
+    svg.appendChild(path);
+    paths.push({path,len,delay:i*180});
+
+    // Hub dot
+    const dot=document.createElementNS(NS,'circle');
+    dot.setAttribute('cx',hx);dot.setAttribute('cy',hy);dot.setAttribute('r','4');
+    dot.setAttribute('fill','rgba(226,75,74,0.7)');dot.setAttribute('stroke','rgba(255,255,255,0.6)');
+    dot.setAttribute('stroke-width','1');
+    svg.appendChild(dot);
+
+    // Hub label
+    const lbl=document.createElementNS(NS,'text');
+    const labelOffX = hub.lon < -110 ? -6 : 6;
+    const labelAnchor = hub.lon < -110 ? 'end' : 'start';
+    lbl.setAttribute('x',(hx+labelOffX).toFixed(1));lbl.setAttribute('y',(hy+4).toFixed(1));
+    lbl.setAttribute('text-anchor',labelAnchor);
+    lbl.setAttribute('fill','rgba(255,255,255,0.65)');
+    lbl.setAttribute('font-size','7.5');lbl.setAttribute('font-weight','500');
+    lbl.setAttribute('font-family','Inter,sans-serif');
+    lbl.textContent=hub.label;
+    svg.appendChild(lbl);
+  });
+
+  // Title overlay at top
+  const titleBg=document.createElementNS(NS,'rect');
+  titleBg.setAttribute('x','0');titleBg.setAttribute('y','0');
+  titleBg.setAttribute('width',W);titleBg.setAttribute('height','28');
+  titleBg.setAttribute('fill','rgba(10,22,40,0.82)');
+  svg.appendChild(titleBg);
+  const titleText=document.createElementNS(NS,'text');
+  titleText.setAttribute('x',W/2);titleText.setAttribute('y','18');
+  titleText.setAttribute('text-anchor','middle');titleText.setAttribute('fill','#f47067');
+  titleText.setAttribute('font-size','9.5');titleText.setAttribute('font-weight','600');
+  titleText.setAttribute('font-family','Inter,sans-serif');
+  titleText.textContent='U.S. tomato supply: all roads led to Sinaloa';
+  svg.appendChild(titleText);
+
+  // Animate arrows with stagger
+  cancelAnimationFrame(arrowAnimFrame);
+  const startTime=performance.now();
+  const totalDuration=3200;
+
+  function animateArrows(now){
+    const elapsed=now-startTime;
+    paths.forEach(({path,len,delay})=>{
+      const t=Math.min(Math.max((elapsed-delay)/(totalDuration-delay),0),1);
+      const ease=1-Math.pow(1-t,3);
+      path.setAttribute('stroke-dashoffset',(len*(1-ease)).toFixed(2));
+    });
+    if(elapsed<totalDuration+paths[paths.length-1].delay){
+      arrowAnimFrame=requestAnimationFrame(animateArrows);
+    }
+  }
+  arrowAnimFrame=requestAnimationFrame(animateArrows);
+}
+
+// ─── Timeline ─────────────────────────────────────────────────────────────
+function buildTimeline(){
+  const months={};
+  WEEKS.forEach((w,i)=>{if(!months[w.m])months[w.m]={first:i,last:i};else months[w.m].last=i;});
+  const mrow=document.getElementById('tl-months');
+  Object.entries(months).forEach(([m,{first,last}])=>{
+    const mid=(first+last)/2;
+    const el=document.createElement('div');
+    el.className='tl-month-label';el.style.left=pct(mid)+'%';el.textContent=m;
+    mrow.appendChild(el);
+  });
+  const trk=document.getElementById('tl-track');
+  WEEKS.forEach((w,i)=>{
+    const tk=document.createElement('div');tk.className='tl-tick';tk.style.left=pct(i)+'%';trk.appendChild(tk);
+    if(i===0||i===N-1||i%4===0||i===N-2){
+      const lbl=document.createElement('div');lbl.className='tl-week-label';lbl.style.left=pct(i)+'%';
+      lbl.textContent=w.l;trk.appendChild(lbl);
+    }
+  });
+  CHAPTERS.forEach((ch,ci)=>{
+    if(!ch.dot)return;
+    const mid=(ch.wr[0]+ch.wr[1])/2;
+    const d=document.createElement('div');d.className='tl-event-dot';
+    d.style.left=pct(mid)+'%';d.style.background=ch.dot.c;d.title=ch.lbl;
+    d.addEventListener('click',()=>goTo(ci));trk.appendChild(d);
+  });
+  const bands=document.getElementById('tl-bands');
+  // Assign rows to avoid label overlap: check each label's position against previous in row0
+  const labelPositions=[]; // track {left, width} of labels placed in row0
+  CHAPTERS.forEach((ch,ci)=>{
+    if(!ch.dot)return;
+    const lp=pct(ch.wr[0]),wp=pct(ch.wr[1])-pct(ch.wr[0]);
+    const band=document.createElement('div');band.className='tl-band';band.dataset.idx=ci;
+    band.style.left=lp+'%';band.style.width=wp+'%';band.style.background=ch.dot.c;
+    bands.appendChild(band);
+    const centerPct=lp+wp/2;
+    // Estimate label width in % (approx 7px per char, container ~900px wide => char ~0.78%)
+    const charW=0.85;
+    const labelW=ch.lbl.length*charW;
+    const labelLeft=centerPct-labelW/2;
+    const labelRight=centerPct+labelW/2;
+    // Check if overlaps any row0 label
+    const overlaps=labelPositions.some(p=>labelRight>p.l && labelLeft<p.r);
+    const row=overlaps?'row1':'row0';
+    if(!overlaps) labelPositions.push({l:labelLeft,r:labelRight});
+    const lbl=document.createElement('div');lbl.className=`tl-band-label ${row}`;lbl.dataset.idx=ci;
+    lbl.style.left=centerPct+'%';lbl.textContent=ch.lbl;
+    bands.appendChild(lbl);
+  });
+}
+
+function updateTimeline(ch){
+  const hl=document.getElementById('tl-hl');
+  if(ch.dot){
+    hl.style.left=pct(ch.wr[0])+'%';
+    hl.style.width=(pct(ch.wr[1])-pct(ch.wr[0]))+'%';
+    hl.style.background=ch.dot.c;hl.style.opacity='0.8';
+  } else {
+    hl.style.left='0%';hl.style.width='100%';
+    hl.style.background='rgba(255,255,255,0.12)';hl.style.opacity='1';
+  }
+  document.querySelectorAll('.tl-band').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
+  document.querySelectorAll('.tl-band-label').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
+  document.querySelectorAll('.tl-event-dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+}
+
+// ─── Chart ────────────────────────────────────────────────────────────────
+let indexChart=null;
+function buildChart(){
+  indexChart=new Chart(document.getElementById('idxChart'),{
+    type:'line',
+    data:{labels:WEEKS.map(w=>w.l),datasets:[
+      {data:IV,borderColor:'#3266ad',backgroundColor:'rgba(50,102,173,0.08)',fill:true,tension:0.35,
+       pointRadius:2.5,pointBackgroundColor:'#3266ad',borderWidth:2,order:1},
+      {data:IV.map(()=>null),borderColor:'transparent',backgroundColor:'rgba(180,180,180,0.12)',
+       fill:true,tension:0.35,pointRadius:0,borderWidth:0,order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)+'/lb'}}},
+      scales:{
+        x:{ticks:{font:{size:8.5},color:'#7d8590',maxRotation:40,autoSkip:false},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{min:0.95,max:1.55,ticks:{callback:v=>'$'+v.toFixed(2),font:{size:8.5},color:'#7d8590'},grid:{color:'rgba(255,255,255,0.05)'}}
+      },animation:{duration:350}}
+  });
+}
+
+function updateChart(ch){
+  if(!indexChart)return;
+  const d=IV.map(()=>null);
+  for(let i=ch.wr[0];i<=Math.min(ch.wr[1],IV.length-1);i++)d[i]=IV[i];
+  indexChart.data.datasets[1].data=d;
+  if(ch.dot){
+    const h=ch.dot.c,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    indexChart.data.datasets[1].backgroundColor=`rgba(${r},${g},${b},0.2)`;
+  } else {
+    indexChart.data.datasets[1].backgroundColor='rgba(255,255,255,0.06)';
+  }
+  indexChart.update();
+}
+
+// ─── Panel ────────────────────────────────────────────────────────────────
+function updatePanel(ch){
+  document.getElementById('p-eyebrow').textContent=ch.eye;
+  document.getElementById('p-title').textContent=ch.title;
+  document.getElementById('p-dates').textContent=ch.dates;
+  document.getElementById('p-body').textContent=ch.body;
+  const s=document.getElementById('p-stat');
+  s.textContent=ch.stat;s.style.background=ch.statBg;s.style.color=ch.statColor;
+}
+
+function updateNav(){
+  document.querySelectorAll('.nav-btn[data-idx]').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
+}
+
+// ─── Navigate ─────────────────────────────────────────────────────────────
+function goTo(idx){
+  cur=idx;
+  const ch=CHAPTERS[idx];
+  updatePanel(ch);updateNav();
+  updateTimeline(ch);
+
+  const globeWrap=document.getElementById('globe-wrap');
+  const sinWrap=document.getElementById('sinaloa-wrap');
+
+  if(ch.sinaloa){
+    // Switch to Sinaloa map
+    cancelAnimationFrame(sfr);cancelAnimationFrame(ffr);autoR=false;
+    globeWrap.classList.add('hidden');
+    sinWrap.classList.add('visible');
+    buildSinaloaMap();
+  } else {
+    // Switch back to globe
+    cancelAnimationFrame(arrowAnimFrame);
+    sinWrap.classList.remove('visible');
+    globeWrap.classList.remove('hidden');
+    flyTo(ch.lat,ch.lon,ch.scale);
+  }
+}
+
+function buildNav(){
+  const row=document.getElementById('nav-row');
+  CHAPTERS.forEach((ch,i)=>{
+    const b=document.createElement('button');b.className='nav-btn';b.dataset.idx=i;b.textContent=ch.lbl;
+    b.addEventListener('click',()=>goTo(i));row.appendChild(b);
+  });
+  document.getElementById('btn-prev').addEventListener('click',()=>goTo(Math.max(0,cur-1)));
+  document.getElementById('btn-next').addEventListener('click',()=>goTo(Math.min(CHAPTERS.length-1,cur+1)));
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+// Add keyboard navigation for presentation clickers
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){
+    e.preventDefault();
+    goTo(Math.min(CHAPTERS.length-1,cur+1));
+  }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){
+    e.preventDefault();
+    goTo(Math.max(0,cur-1));
+  }
+});
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+  .then(world=>{worldData=world;buildTimeline();buildNav();goTo(0);})
+  .catch(()=>{buildTimeline();buildNav();goTo(0);drawGlobe(cs);});
+</script>
+</body>
+</html>
