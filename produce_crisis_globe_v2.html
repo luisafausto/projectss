@@ -1,3 +1,92 @@
+
+Claude finished the response
+You said: help me post this so that i can access it via webviewer in powerpoint
+1778815627440_image.png
+
+produce_crisis_globe_v2.html
+html
+
+help me post this so that i can access it via webviewer in powerpoint
+
+8:27 PM
+Claude responded: Your file is already on GitHub Pages (I can see the deployment is active in your screenshot).
+
+Read the HTML file to understand its content
+Read the HTML file to understand its content
+Your file is already on GitHub Pages (I can see the deployment is active in your screenshot). Here's how to get the live URL and use it in PowerPoint:
+
+Your GitHub Pages URL is:
+
+https://luisafausto.github.io/projectss/produce_crisis_globe_v2.html
+To use it in PowerPoint Web Viewer:
+
+Open PowerPoint
+Go to Insert → Web Viewer (or search "Web Viewer" in Add-ins if you don't see it)
+Paste in that URL above
+Click Insert
+That's it! Since GitHub Pages is already deployed and showing as active (the green checkmark in your screenshot), the file should be live immediately at that URL.
+
+Tip: If the Web Viewer shows a blank page, it may be because PowerPoint's Web Viewer has trouble with some JavaScript-heavy pages. In that case, you can test the URL in your browser first to confirm it loads, then paste it into the viewer.
+
+You said: This worked, but i'd like it to fit in this format, if we remove the timeline would it fit?
+1778815750643_image.png
+This worked, but i'd like it to fit in this format, if we remove the timeline would it fit? 
+
+ask if any questions
+
+8:29 PM
+Claude responded: Looking at your screenshot, the visualization is rendering nicely!
+Looking at your screenshot, the visualization is rendering nicely! Before suggesting changes, I have a couple of quick questions:
+
+I found a few options — which would you like?
+
+You said: Q: What's the approximate slide dimensions you're working with in PowerPoint?
+Q: What's the approximate slide dimensions you're working with in PowerPoint? (This helps me size the layout correctly)
+A: Standard 16:9 (widescreen)
+
+Q: When you remove the timeline, what would you like to keep?
+A: globe + big picture text + index chart and controls to move forward and back in the presentation
+
+8:31 PM
+Claude responded: Now I have a full picture of the file.
+
+Viewed 2 files
+Viewed 2 files
+Now I have a full picture of the file. I'll remove the timeline section and tighten the layout to fit a 16:9 PowerPoint web viewer frame compactly.
+
+
+Copy file to working directory
+Copy file to working directory
+Now I'll rewrite the file with the timeline removed and layout optimized for 16:9:
+
+
+Ran 2 commands, read a file
+Ran 2 commands, read a file
+Here's v3 with the changes made:
+
+What changed:
+
+✅ Timeline removed — that whole section is gone
+✅ Layout fills the frame — uses height: 100% with overflow: hidden so it fits a 16:9 web viewer without scrolling
+✅ Globe scaled down to 260px so the chart has room to breathe below
+✅ Prev / Next controls + chapter buttons all kept
+✅ Chart now fills remaining vertical space dynamically
+To deploy: Upload this file to your GitHub repo (luisafausto/projectss) replacing the old one, and your GitHub Pages URL will update automatically:
+
+https://luisafausto.github.io/projectss/produce_crisis_globe_v3.html
+Or rename it to replace the original if you want to keep the same URL in PowerPoint.
+
+
+Produce crisis globe v3
+Code · HTML 
+
+
+
+
+Claude is AI and can make mistakes. Please double-check responses.
+Produce crisis globe v3 · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,42 +99,45 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+  }
+ 
   body {
     font-family: 'Inter', system-ui, sans-serif;
     background: #0d1117;
     color: #e6edf3;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 28px 20px 40px;
+    padding: 12px 18px 10px;
+    gap: 10px;
   }
-
-  #header { text-align: center; margin-bottom: 24px; }
-  #header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; color: #f0f6fc; }
-  #header p  { font-size: 13px; color: #7d8590; margin-top: 5px; }
-
+ 
+  /* ── Header ── */
+  #header { text-align: center; flex-shrink: 0; }
+  #header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; color: #f0f6fc; }
+  #header p  { font-size: 11px; color: #7d8590; margin-top: 3px; }
+ 
   /* ── Main layout ── */
   #main {
     display: flex;
-    gap: 28px;
+    gap: 22px;
     align-items: flex-start;
-    width: 100%;
-    max-width: 900px;
-    margin-bottom: 24px;
+    flex-shrink: 0;
   }
-
+ 
   /* ── Globe ── */
-  #globe-wrap { position: relative; width: 320px; height: 320px; flex-shrink: 0; }
+  #globe-wrap { position: relative; width: 260px; height: 260px; flex-shrink: 0; }
   canvas#globe { display: block; }
   #ov { position: absolute; top: 0; left: 0; pointer-events: none; }
-
-  /* ── Sinaloa map (replaces globe for that chapter) ── */
+ 
+  /* ── Sinaloa map ── */
   #sinaloa-wrap {
     display: none;
-    width: 320px;
-    height: 320px;
+    width: 260px;
+    height: 260px;
     flex-shrink: 0;
     position: relative;
     border-radius: 10px;
@@ -56,77 +148,52 @@
   #sinaloa-wrap.visible { display: block; }
   #globe-wrap.hidden { display: none; }
   #sinaloa-svg { width: 100%; height: 100%; }
-
+ 
   /* ── Side panel ── */
   #panel {
     flex: 1; min-width: 0;
-    display: flex; flex-direction: column; gap: 10px;
-    padding-top: 6px;
+    display: flex; flex-direction: column; gap: 8px;
+    padding-top: 4px;
   }
-  #p-eyebrow { font-size: 10.5px; font-weight: 500; color: #7d8590; text-transform: uppercase; letter-spacing: 0.07em; }
-  #p-title   { font-size: 18px; font-weight: 600; color: #f0f6fc; line-height: 1.3; }
-  #p-dates   { font-size: 12px; color: #7d8590; margin-top: -4px; }
-  #p-body    { font-size: 13.5px; color: #adbac7; line-height: 1.65; }
-  #p-stat    { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 5px 13px; border-radius: 6px; }
-
-  /* ── Timeline ── */
-  #tl-section { width: 100%; max-width: 900px; margin-bottom: 22px; }
-  .section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #7d8590; margin-bottom: 8px; }
-  #tl-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px 20px 20px; }
-  #tl-months { position: relative; height: 16px; margin-bottom: 2px; }
-  .tl-month-label { position: absolute; font-size: 10px; color: #7d8590; font-weight: 500; transform: translateX(-50%); }
-  #tl-track { position: relative; height: 40px; margin-bottom: 4px; }
-  #tl-base  { position: absolute; top: 14px; left: 0; right: 0; height: 3px; background: #30363d; border-radius: 2px; }
-  #tl-hl    { position: absolute; top: 14px; height: 3px; border-radius: 2px;
-               transition: left 0.55s cubic-bezier(0.4,0,0.2,1), width 0.55s cubic-bezier(0.4,0,0.2,1), background 0.4s; }
-  .tl-tick       { position: absolute; top: 10px; width: 1px; height: 10px; background: #30363d; }
-  .tl-week-label { position: absolute; top: 26px; font-size: 8.5px; color: #7d8590; transform: translateX(-50%); white-space: nowrap; }
-  .tl-event-dot  { position: absolute; top: 7px; width: 14px; height: 14px; border-radius: 50%;
-                    border: 2px solid rgba(255,255,255,0.5); transform: translateX(-50%);
-                    cursor: pointer; z-index: 3; transition: transform 0.18s, box-shadow 0.18s; }
-  .tl-event-dot:hover, .tl-event-dot.active { transform: translateX(-50%) scale(1.35); box-shadow: 0 0 0 4px rgba(255,255,255,0.1); }
-  #tl-bands { position: relative; height: 56px; margin-top: 4px; }
-  .tl-band  { position: absolute; top: 0; height: 16px; border-radius: 3px; opacity: 0.18; transition: opacity 0.3s; }
-  .tl-band.active { opacity: 0.35; }
-  .tl-band-label { position: absolute; top: 18px; font-size: 8.5px; font-weight: 500; color: #7d8590;
-                   white-space: nowrap; transform: translateX(-50%); transition: color 0.3s; }
-  .tl-band-label.active { color: #e6edf3; }
-
+  #p-eyebrow { font-size: 10px; font-weight: 500; color: #7d8590; text-transform: uppercase; letter-spacing: 0.07em; }
+  #p-title   { font-size: 16px; font-weight: 600; color: #f0f6fc; line-height: 1.3; }
+  #p-dates   { font-size: 11px; color: #7d8590; margin-top: -2px; }
+  #p-body    { font-size: 12.5px; color: #adbac7; line-height: 1.6; }
+  #p-stat    { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 6px; }
+ 
   /* ── Chart ── */
-  #chart-section { width: 100%; max-width: 900px; margin-bottom: 24px; }
-  #chart-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 14px 18px 10px; height: 115px; }
-
+  #chart-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .section-label { font-size: 9.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #7d8590; margin-bottom: 5px; flex-shrink: 0; }
+  #chart-container { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px 14px 8px; flex: 1; min-height: 0; }
+  #chart-container canvas { height: 100% !important; }
+ 
   /* ── Nav ── */
-  #nav-section { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 900px; }
-  #nav-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .nav-btn { font-family: inherit; font-size: 12px; padding: 6px 13px; border-radius: 6px;
+  #nav-section { display: flex; flex-direction: column; align-items: center; gap: 7px; flex-shrink: 0; }
+  #nav-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+  .nav-btn { font-family: inherit; font-size: 11px; padding: 5px 11px; border-radius: 6px;
               border: 1px solid #30363d; background: transparent; color: #7d8590; cursor: pointer;
               transition: background 0.13s, color 0.13s, border-color 0.13s; }
   .nav-btn:hover { background: #161b22; color: #e6edf3; }
   .nav-btn.active { background: #21262d; color: #f0f6fc; border-color: #58a6ff; font-weight: 500; }
-  #pn-row { display: flex; gap: 10px; }
-  #pn-row .nav-btn { padding: 7px 18px; }
+  #pn-row { display: flex; gap: 8px; }
+  #pn-row .nav-btn { padding: 6px 16px; }
 </style>
 </head>
 <body>
-
+ 
 <div id="header">
   <h1>Produce Markets — Q1 &amp; Early Q2 2026</h1>
   <p>Five compounding crises drove the ProduceIQ Index from $1.04 to a record $1.43 in under five months</p>
 </div>
-
+ 
 <div id="main">
-  <!-- Globe (hidden for Sinaloa chapter) -->
   <div id="globe-wrap">
-    <canvas id="globe" width="320" height="320"></canvas>
-    <svg id="ov" width="320" height="320"></svg>
+    <canvas id="globe" width="260" height="260"></canvas>
+    <svg id="ov" width="260" height="260"></svg>
   </div>
-
-  <!-- Sinaloa map (shown only for that chapter) -->
   <div id="sinaloa-wrap">
-    <svg id="sinaloa-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="sinaloa-svg" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
-
   <div id="panel">
     <div id="p-eyebrow"></div>
     <div id="p-title"></div>
@@ -135,21 +202,12 @@
     <div id="p-stat"></div>
   </div>
 </div>
-
-<div id="tl-section">
-  <div class="section-label">Weekly timeline — events &amp; index</div>
-  <div id="tl-container">
-    <div id="tl-months"></div>
-    <div id="tl-track"><div id="tl-base"></div><div id="tl-hl"></div></div>
-    <div id="tl-bands"></div>
-  </div>
-</div>
-
+ 
 <div id="chart-section">
   <div class="section-label">ProduceIQ Index $/lb · Dec 2025 → May 2026</div>
   <div id="chart-container"><canvas id="idxChart"></canvas></div>
 </div>
-
+ 
 <div id="nav-section">
   <div id="nav-row"></div>
   <div id="pn-row">
@@ -157,9 +215,8 @@
     <button class="nav-btn" id="btn-next">Next →</button>
   </div>
 </div>
-
+ 
 <script>
-// ─── Week / index data ────────────────────────────────────────────────────
 const WEEKS=[
   {l:'W52',m:'Dec'},{l:'W1',m:'Jan'},{l:'W4',m:'Jan'},{l:'W5',m:'Jan'},
   {l:'W6',m:'Feb'},{l:'W7',m:'Feb'},{l:'W8',m:'Feb'},{l:'W9',m:'Feb'},
@@ -170,8 +227,7 @@ const WEEKS=[
 const IV=[1.04,1.18,1.11,1.14,1.18,1.20,1.13,1.12,1.12,1.13,1.18,1.38,1.41,1.40,1.42,1.43,1.37];
 const N=WEEKS.length;
 const pct=i=>(i/(N-1))*100;
-
-// ─── Chapters ─────────────────────────────────────────────────────────────
+ 
 const CHAPTERS=[
   {
     lbl:'Overview', eye:'The big picture',
@@ -180,7 +236,7 @@ const CHAPTERS=[
     body:'Five compounding crises drove the ProduceIQ Index from $1.04 in December to a record $1.43 by late April — a 37% rise in under five months. Each driver struck a different part of the supply chain, and most arrived simultaneously.',
     stat:'Index peak: +37% from December low',
     statBg:'#3d1a1a', statColor:'#ff7b7b',
-    lat:15, lon:-20, scale:155, wr:[0,16], dot:null, sinaloa:false
+    lat:15, lon:-20, scale:125, wr:[0,16], dot:null, sinaloa:false
   },
   {
     lbl:'FL Freeze', eye:'Driver 1 · weather',
@@ -189,7 +245,7 @@ const CHAPTERS=[
     body:'Back-to-back historic freezes devastated every major Florida growing region. Tampa saw snow for only the 3rd time in 30 years. Sweet corn volume fell 80% year-over-year. Tomatoes, peppers, beans, celery, and strawberries were all devastated. Several growers declared Act of God — damage lingered through April.',
     stat:'Sweet corn: −80% vs prior year',
     statBg:'#0d2a4a', statColor:'#58a6ff',
-    lat:27.5, lon:-81.5, scale:500, wr:[1,5],
+    lat:27.5, lon:-81.5, scale:420, wr:[1,5],
     dot:{c:'#4a9eff',p:'rgba(74,158,255,0.35)'}, sinaloa:false
   },
   {
@@ -199,7 +255,7 @@ const CHAPTERS=[
     body:'US–Iran conflict closed the strait to commercial traffic. Oil surged above $100/barrel — levels not seen since Russia\'s invasion of Ukraine. Higher fuel costs rippled through the entire produce supply chain: field equipment, refrigerated shipping, and fertilizer all spiked.',
     stat:'Oil: +25% in a single week',
     statBg:'#3d2a0a', statColor:'#f5a623',
-    lat:26.5, lon:56.5, scale:540, wr:[7,15],
+    lat:26.5, lon:56.5, scale:460, wr:[7,15],
     dot:{c:'#f5a623',p:'rgba(245,166,35,0.35)'}, sinaloa:false
   },
   {
@@ -209,7 +265,7 @@ const CHAPTERS=[
     body:'Cartel leader El Mencho\'s reported death triggered roadblocks and arson across Jalisco and Michoacán. The USDA temporarily suspended inspections. A new 15% blanket tariff plus a +17% duty on imported Mexican tomatoes compounded an already critical shortage.',
     stat:'Tomatoes: +80% in a single week',
     statBg:'#3d0f0f', statColor:'#f47067',
-    lat:20, lon:-102, scale:460, wr:[6,14],
+    lat:20, lon:-102, scale:380, wr:[6,14],
     dot:{c:'#e24b4a',p:'rgba(226,75,74,0.35)'}, sinaloa:false
   },
   {
@@ -219,7 +275,7 @@ const CHAPTERS=[
     body:'Record-setting March heat ended the Yuma, AZ desert season weeks ahead of schedule. Cold, wet weather in California\'s Salinas Valley delayed the seasonal handoff. The resulting supply gap hit broccoli (+39%), cauliflower (+59%), iceberg (+82%), and romaine hardest — all in a single week.',
     stat:'Iceberg lettuce: +82% in one week',
     statBg:'#0a2e22', statColor:'#3fb950',
-    lat:33.5, lon:-116, scale:480, wr:[9,15],
+    lat:33.5, lon:-116, scale:400, wr:[9,15],
     dot:{c:'#1d9e75',p:'rgba(29,158,117,0.35)'}, sinaloa:false
   },
   {
@@ -229,7 +285,7 @@ const CHAPTERS=[
     body:'Extreme drought and Hurricane Helene debris fueled wildfires across Georgia and North Florida. Smoky haze slowed crop growth. Round and plum tomatoes hit all-time record highs. The ProduceIQ Index peaked at $1.43/lb — the highest level ever recorded.',
     stat:'Round tomatoes: all-time record high',
     statBg:'#3d1505', statColor:'#f0883e',
-    lat:32, lon:-83.5, scale:480, wr:[13,15],
+    lat:32, lon:-83.5, scale:400, wr:[13,15],
     dot:{c:'#d85a30',p:'rgba(216,90,48,0.35)'}, sinaloa:false
   },
   {
@@ -239,13 +295,13 @@ const CHAPTERS=[
     body:'With Florida wiped out by freezes and Mexican growing states disrupted by cartel violence, the entire U.S. tomato supply effectively funneled through two small growing regions in Sinaloa — Culiacán and Los Mochis. Every distributor on the East Coast, South, Midwest, and West was drawing from the same narrow source.',
     stat:'One state. Two regions. 330 million consumers.',
     statBg:'#3d1a1a', statColor:'#ff7b7b',
-    lat:25, lon:-107, scale:420, wr:[6,15],
+    lat:25, lon:-107, scale:340, wr:[6,15],
     dot:{c:'#e24b4a',p:'rgba(226,75,74,0.35)'}, sinaloa:true
   }
 ];
-
+ 
 // ─── Globe ────────────────────────────────────────────────────────────────
-const W=320,H=320,CX=160,CY=160;
+const GW=260,GH=260,CX=130,CY=130;
 const cv=document.getElementById('globe');
 const gx=cv.getContext('2d');
 const ov=document.getElementById('ov');
@@ -253,17 +309,17 @@ const NS='http://www.w3.org/2000/svg';
 const pulseDef=document.createElementNS(NS,'style');
 pulseDef.textContent='@keyframes gp{0%{r:8;opacity:.65}100%{r:26;opacity:0}}';
 ov.appendChild(pulseDef);
-
-let rx=0.26,ry=0,cs=155,autoR=true,sfr,ffr,worldData=null,cur=0;
-
+ 
+let rx=0.26,ry=0,cs=125,autoR=true,sfr,ffr,worldData=null,cur=0;
+ 
 function proj(s){
   return d3.geoOrthographic().scale(s).translate([CX,CY])
     .rotate([ry*180/Math.PI,-rx*180/Math.PI,0]).clipAngle(90);
 }
-
+ 
 function drawGlobe(s){
   const p=proj(s),ph=d3.geoPath(p,gx);
-  gx.clearRect(0,0,W,H);
+  gx.clearRect(0,0,GW,GH);
   gx.save();gx.beginPath();gx.arc(CX,CY,s,0,2*Math.PI);gx.fillStyle='#0a1628';gx.fill();gx.restore();
   gx.save();gx.beginPath();gx.arc(CX,CY,s,0,2*Math.PI);gx.clip();
   if(worldData){
@@ -278,14 +334,14 @@ function drawGlobe(s){
   gx.strokeStyle='rgba(100,180,255,0.15)';gx.lineWidth=0.8;gx.stroke();
   drawDots(s);
 }
-
+ 
 function isVis(lat,lon,s){
   const p=proj(s),r=p.rotate();
   const cLon=-r[0]*Math.PI/180,cLat=r[1]*Math.PI/180;
   const φ=lat*Math.PI/180,λ=lon*Math.PI/180;
   return Math.sin(cLat)*Math.sin(φ)+Math.cos(cLat)*Math.cos(φ)*Math.cos(λ-cLon)>0;
 }
-
+ 
 function drawDots(s){
   while(ov.lastChild&&ov.lastChild!==pulseDef)ov.removeChild(ov.lastChild);
   const p=proj(s);
@@ -316,7 +372,7 @@ function drawDots(s){
     g.appendChild(pulse);g.appendChild(c);ov.appendChild(g);
   });
 }
-
+ 
 function lerp(a,b,t){return a+(b-a)*t;}
 function flyTo(lat,lon,scl,done){
   autoR=false;cancelAnimationFrame(sfr);cancelAnimationFrame(ffr);
@@ -337,32 +393,22 @@ function flyTo(lat,lon,scl,done){
 }
 let sa=0;
 function spin(){if(!autoR)return;sa+=0.0025;ry=sa;drawGlobe(cs);sfr=requestAnimationFrame(spin);}
-
-// ─── Sinaloa arrow map ────────────────────────────────────────────────────
-// Simple US outline + Mexico outline + animated arrows from Sinaloa
-// to key US distribution hubs, all drawn in SVG
-
+ 
+// ─── Sinaloa map ──────────────────────────────────────────────────────────
 let arrowAnimFrame;
-
+ 
 function buildSinaloaMap(){
   const svg=document.getElementById('sinaloa-svg');
   svg.innerHTML='';
-
-  const W=320,H=320;
-
-  // We'll use a simple custom geographic bounding box for US+Mexico
-  // Lon: -125 to -66, Lat: 14 to 50
+  const W=260,H=260;
   const lonMin=-128,lonMax=-60,latMin=13,latMax=52;
   function toX(lon){return ((lon-lonMin)/(lonMax-lonMin))*W;}
   function toY(lat){return H-((lat-latMin)/(latMax-latMin))*H;}
-
-  // Ocean background
+ 
   const bg=document.createElementNS(NS,'rect');
   bg.setAttribute('width',W);bg.setAttribute('height',H);
   bg.setAttribute('fill','#0a1628');svg.appendChild(bg);
-
-  // --- Draw land polygons (simplified) ---
-  // USA outline (very simplified for visual purposes)
+ 
   const usaPoints=[
     [-124,49],[-95,49],[-82,46],[-76,44],[-71,42],[-70,43],[-66,44],
     [-67,47],[-70,44],[-73,41],[-74,40],[-76,35],[-81,31],[-81,25],
@@ -370,8 +416,6 @@ function buildSinaloaMap(){
     [-97,28],[-100,28],[-104,29],[-106,32],[-109,31],[-111,31],
     [-114,32],[-117,32],[-118,34],[-122,37],[-124,40],[-124,49]
   ];
-
-  // Mexico outline (simplified)
   const mxPoints=[
     [-117,32],[-114,32],[-111,31],[-109,31],[-106,32],[-104,29],
     [-100,28],[-97,26],[-97,22],[-93,18],[-90,16],[-87,16],
@@ -380,7 +424,7 @@ function buildSinaloaMap(){
     [-104,19],[-105,21],[-109,23],[-110,24],[-109,27],[-110,29],
     [-113,29],[-114,30],[-114,32],[-117,32]
   ];
-
+ 
   function makePolygon(points,fill,stroke){
     const poly=document.createElementNS(NS,'polygon');
     poly.setAttribute('points',points.map(([lon,lat])=>`${toX(lon).toFixed(1)},${toY(lat).toFixed(1)}`).join(' '));
@@ -389,35 +433,30 @@ function buildSinaloaMap(){
     poly.setAttribute('stroke-width','0.8');
     return poly;
   }
-
   svg.appendChild(makePolygon(usaPoints,'#1a3a5c'));
   svg.appendChild(makePolygon(mxPoints,'#122a45'));
-
-  // State borders (very light) — draw a few key ones
-  // Mexico/US border line emphasis
+ 
   const border=document.createElementNS(NS,'line');
   border.setAttribute('x1',toX(-117));border.setAttribute('y1',toY(32));
   border.setAttribute('x2',toX(-97));border.setAttribute('y2',toY(26));
   border.setAttribute('stroke','rgba(255,255,255,0.25)');border.setAttribute('stroke-width','1.2');
   border.setAttribute('stroke-dasharray','4,3');
   svg.appendChild(border);
-
-  // Sinaloa region highlight
+ 
   const sinCenter={lon:-107.7,lat:25.2};
   const sinX=toX(sinCenter.lon),sinY=toY(sinCenter.lat);
-
+ 
   const sinGlow=document.createElementNS(NS,'circle');
   sinGlow.setAttribute('cx',sinX);sinGlow.setAttribute('cy',sinY);
   sinGlow.setAttribute('r','22');sinGlow.setAttribute('fill','rgba(226,75,74,0.12)');
   svg.appendChild(sinGlow);
-
+ 
   const sinCircle=document.createElementNS(NS,'circle');
   sinCircle.setAttribute('cx',sinX);sinCircle.setAttribute('cy',sinY);
   sinCircle.setAttribute('r','10');sinCircle.setAttribute('fill','#e24b4a');
   sinCircle.setAttribute('stroke','#fff');sinCircle.setAttribute('stroke-width','1.5');
   svg.appendChild(sinCircle);
-
-  // Culiacán label
+ 
   const sinLabel=document.createElementNS(NS,'text');
   sinLabel.setAttribute('x',sinX);sinLabel.setAttribute('y',sinY+24);
   sinLabel.setAttribute('text-anchor','middle');
@@ -426,8 +465,7 @@ function buildSinaloaMap(){
   sinLabel.setAttribute('font-family','Inter,sans-serif');
   sinLabel.textContent='Sinaloa, MX';
   svg.appendChild(sinLabel);
-
-  // Arrow defs (arrowhead)
+ 
   const defs=document.createElementNS(NS,'defs');
   const marker=document.createElementNS(NS,'marker');
   marker.setAttribute('id','arrowhead');marker.setAttribute('markerWidth','8');
@@ -436,8 +474,7 @@ function buildSinaloaMap(){
   const arrowPath=document.createElementNS(NS,'polygon');
   arrowPath.setAttribute('points','0 0, 8 3, 0 6');arrowPath.setAttribute('fill','#e24b4a');
   marker.appendChild(arrowPath);defs.appendChild(marker);
-
-  // Faded arrowhead for trails
+ 
   const markerFade=document.createElementNS(NS,'marker');
   markerFade.setAttribute('id','arrowhead-fade');markerFade.setAttribute('markerWidth','8');
   markerFade.setAttribute('markerHeight','6');markerFade.setAttribute('refX','8');markerFade.setAttribute('refY','3');
@@ -445,10 +482,8 @@ function buildSinaloaMap(){
   const arrowPathFade=document.createElementNS(NS,'polygon');
   arrowPathFade.setAttribute('points','0 0, 8 3, 0 6');arrowPathFade.setAttribute('fill','rgba(226,75,74,0.35)');
   markerFade.appendChild(arrowPathFade);defs.appendChild(markerFade);
-
   svg.appendChild(defs);
-
-  // Distribution hub destinations
+ 
   const hubs=[
     {name:'New York',   lon:-74.0, lat:40.7, label:'Northeast'},
     {name:'Chicago',    lon:-87.6, lat:41.9, label:'Midwest'},
@@ -457,47 +492,34 @@ function buildSinaloaMap(){
     {name:'Los Angeles',lon:-118.2,lat:34.1, label:'West Coast'},
     {name:'Seattle',    lon:-122.3,lat:47.6, label:'Pacific NW'},
   ];
-
-  // Draw animated paths from Sinaloa to each hub
+ 
   const paths=[];
   hubs.forEach((hub,i)=>{
     const hx=toX(hub.lon),hy=toY(hub.lat);
-
-    // Midpoint control for curve
     const mx=(sinX+hx)/2 + (hub.lat>35 ? -10 : 8);
     const my=(sinY+hy)/2 - 15;
-
-    // Background trail (faded, full path always visible)
+ 
     const trail=document.createElementNS(NS,'path');
     const d=`M${sinX.toFixed(1)},${sinY.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${hx.toFixed(1)},${hy.toFixed(1)}`;
-    trail.setAttribute('d',d);
-    trail.setAttribute('fill','none');
-    trail.setAttribute('stroke','rgba(226,75,74,0.18)');
-    trail.setAttribute('stroke-width','1.5');
+    trail.setAttribute('d',d);trail.setAttribute('fill','none');
+    trail.setAttribute('stroke','rgba(226,75,74,0.18)');trail.setAttribute('stroke-width','1.5');
     svg.appendChild(trail);
-
-    // Animated path
+ 
     const path=document.createElementNS(NS,'path');
-    path.setAttribute('d',d);
-    path.setAttribute('fill','none');
-    path.setAttribute('stroke','#e24b4a');
-    path.setAttribute('stroke-width','2');
-    path.setAttribute('marker-end','url(#arrowhead)');
-    path.setAttribute('stroke-linecap','round');
+    path.setAttribute('d',d);path.setAttribute('fill','none');
+    path.setAttribute('stroke','#e24b4a');path.setAttribute('stroke-width','2');
+    path.setAttribute('marker-end','url(#arrowhead)');path.setAttribute('stroke-linecap','round');
     const len=path.getTotalLength?path.getTotalLength():300;
-    path.setAttribute('stroke-dasharray',len);
-    path.setAttribute('stroke-dashoffset',len);
+    path.setAttribute('stroke-dasharray',len);path.setAttribute('stroke-dashoffset',len);
     svg.appendChild(path);
     paths.push({path,len,delay:i*180});
-
-    // Hub dot
+ 
     const dot=document.createElementNS(NS,'circle');
     dot.setAttribute('cx',hx);dot.setAttribute('cy',hy);dot.setAttribute('r','4');
     dot.setAttribute('fill','rgba(226,75,74,0.7)');dot.setAttribute('stroke','rgba(255,255,255,0.6)');
     dot.setAttribute('stroke-width','1');
     svg.appendChild(dot);
-
-    // Hub label
+ 
     const lbl=document.createElementNS(NS,'text');
     const labelOffX = hub.lon < -110 ? -6 : 6;
     const labelAnchor = hub.lon < -110 ? 'end' : 'start';
@@ -509,8 +531,7 @@ function buildSinaloaMap(){
     lbl.textContent=hub.label;
     svg.appendChild(lbl);
   });
-
-  // Title overlay at top
+ 
   const titleBg=document.createElementNS(NS,'rect');
   titleBg.setAttribute('x','0');titleBg.setAttribute('y','0');
   titleBg.setAttribute('width',W);titleBg.setAttribute('height','28');
@@ -523,12 +544,11 @@ function buildSinaloaMap(){
   titleText.setAttribute('font-family','Inter,sans-serif');
   titleText.textContent='U.S. tomato supply: all roads led to Sinaloa';
   svg.appendChild(titleText);
-
-  // Animate arrows with stagger
+ 
   cancelAnimationFrame(arrowAnimFrame);
   const startTime=performance.now();
   const totalDuration=1800;
-
+ 
   function animateArrows(now){
     const elapsed=now-startTime;
     paths.forEach(({path,len,delay})=>{
@@ -542,61 +562,7 @@ function buildSinaloaMap(){
   }
   arrowAnimFrame=requestAnimationFrame(animateArrows);
 }
-
-// ─── Timeline ─────────────────────────────────────────────────────────────
-function buildTimeline(){
-  const months={};
-  WEEKS.forEach((w,i)=>{if(!months[w.m])months[w.m]={first:i,last:i};else months[w.m].last=i;});
-  const mrow=document.getElementById('tl-months');
-  Object.entries(months).forEach(([m,{first,last}])=>{
-    const mid=(first+last)/2;
-    const el=document.createElement('div');
-    el.className='tl-month-label';el.style.left=pct(mid)+'%';el.textContent=m;
-    mrow.appendChild(el);
-  });
-  const trk=document.getElementById('tl-track');
-  WEEKS.forEach((w,i)=>{
-    const tk=document.createElement('div');tk.className='tl-tick';tk.style.left=pct(i)+'%';trk.appendChild(tk);
-    if(i===0||i===N-1||i%4===0||i===N-2){
-      const lbl=document.createElement('div');lbl.className='tl-week-label';lbl.style.left=pct(i)+'%';
-      lbl.textContent=w.l;trk.appendChild(lbl);
-    }
-  });
-  CHAPTERS.slice(1).forEach((ch,ci)=>{
-    if(!ch.dot)return;
-    const mid=(ch.wr[0]+ch.wr[1])/2;
-    const d=document.createElement('div');d.className='tl-event-dot';
-    d.style.left=pct(mid)+'%';d.style.background=ch.dot.c;d.title=ch.lbl;
-    d.addEventListener('click',()=>goTo(ci+1));trk.appendChild(d);
-  });
-  const bands=document.getElementById('tl-bands');
-  CHAPTERS.slice(1).forEach((ch,ci)=>{
-    if(!ch.dot)return;
-    const lp=pct(ch.wr[0]),wp=pct(ch.wr[1])-pct(ch.wr[0]);
-    const band=document.createElement('div');band.className='tl-band';band.dataset.idx=ci+1;
-    band.style.left=lp+'%';band.style.width=wp+'%';band.style.background=ch.dot.c;
-    bands.appendChild(band);
-    const lbl=document.createElement('div');lbl.className='tl-band-label';lbl.dataset.idx=ci+1;
-    lbl.style.left=(lp+wp/2)+'%';lbl.textContent=ch.lbl;
-    bands.appendChild(lbl);
-  });
-}
-
-function updateTimeline(ch){
-  const hl=document.getElementById('tl-hl');
-  if(ch.dot){
-    hl.style.left=pct(ch.wr[0])+'%';
-    hl.style.width=(pct(ch.wr[1])-pct(ch.wr[0]))+'%';
-    hl.style.background=ch.dot.c;hl.style.opacity='0.8';
-  } else {
-    hl.style.left='0%';hl.style.width='100%';
-    hl.style.background='rgba(255,255,255,0.12)';hl.style.opacity='1';
-  }
-  document.querySelectorAll('.tl-band').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
-  document.querySelectorAll('.tl-band-label').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
-  document.querySelectorAll('.tl-event-dot').forEach((d,i)=>d.classList.toggle('active',i+1===cur));
-}
-
+ 
 // ─── Chart ────────────────────────────────────────────────────────────────
 let indexChart=null;
 function buildChart(){
@@ -611,12 +577,12 @@ function buildChart(){
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)+'/lb'}}},
       scales:{
-        x:{ticks:{font:{size:8.5},color:'#7d8590',maxRotation:40,autoSkip:false},grid:{color:'rgba(255,255,255,0.05)'}},
-        y:{min:0.95,max:1.55,ticks:{callback:v=>'$'+v.toFixed(2),font:{size:8.5},color:'#7d8590'},grid:{color:'rgba(255,255,255,0.05)'}}
+        x:{ticks:{font:{size:8},color:'#7d8590',maxRotation:40,autoSkip:false},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{min:0.95,max:1.55,ticks:{callback:v=>'$'+v.toFixed(2),font:{size:8},color:'#7d8590'},grid:{color:'rgba(255,255,255,0.05)'}}
       },animation:{duration:350}}
   });
 }
-
+ 
 function updateChart(ch){
   if(!indexChart)return;
   const d=IV.map(()=>null);
@@ -630,7 +596,7 @@ function updateChart(ch){
   }
   indexChart.update();
 }
-
+ 
 // ─── Panel ────────────────────────────────────────────────────────────────
 function updatePanel(ch){
   document.getElementById('p-eyebrow').textContent=ch.eye;
@@ -640,29 +606,27 @@ function updatePanel(ch){
   const s=document.getElementById('p-stat');
   s.textContent=ch.stat;s.style.background=ch.statBg;s.style.color=ch.statColor;
 }
-
+ 
 function updateNav(){
   document.querySelectorAll('.nav-btn[data-idx]').forEach(b=>b.classList.toggle('active',+b.dataset.idx===cur));
 }
-
+ 
 // ─── Navigate ─────────────────────────────────────────────────────────────
 function goTo(idx){
   cur=idx;
   const ch=CHAPTERS[idx];
   updatePanel(ch);updateNav();
-  updateTimeline(ch);updateChart(ch);
-
+  updateChart(ch);
+ 
   const globeWrap=document.getElementById('globe-wrap');
   const sinWrap=document.getElementById('sinaloa-wrap');
-
+ 
   if(ch.sinaloa){
-    // Switch to Sinaloa map
     cancelAnimationFrame(sfr);cancelAnimationFrame(ffr);autoR=false;
     globeWrap.classList.add('hidden');
     sinWrap.classList.add('visible');
     buildSinaloaMap();
   } else {
-    // Switch back to globe
     cancelAnimationFrame(arrowAnimFrame);
     sinWrap.classList.remove('visible');
     globeWrap.classList.remove('hidden');
@@ -671,7 +635,7 @@ function goTo(idx){
     });
   }
 }
-
+ 
 function buildNav(){
   const row=document.getElementById('nav-row');
   CHAPTERS.forEach((ch,i)=>{
@@ -681,11 +645,12 @@ function buildNav(){
   document.getElementById('btn-prev').addEventListener('click',()=>goTo(Math.max(0,cur-1)));
   document.getElementById('btn-next').addEventListener('click',()=>goTo(Math.min(CHAPTERS.length-1,cur+1)));
 }
-
+ 
 // ─── Init ─────────────────────────────────────────────────────────────────
 d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-  .then(world=>{worldData=world;buildTimeline();buildChart();buildNav();goTo(0);spin();})
-  .catch(()=>{buildTimeline();buildChart();buildNav();goTo(0);drawGlobe(cs);});
+  .then(world=>{worldData=world;buildChart();buildNav();goTo(0);spin();})
+  .catch(()=>{buildChart();buildNav();goTo(0);drawGlobe(cs);});
 </script>
 </body>
 </html>
+ 
